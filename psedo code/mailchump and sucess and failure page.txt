@@ -1,0 +1,156 @@
+                                                      add.js:
+const express = require("express")
+const bodyParser = require("body-parser")
+const request = require("request")
+const https = require("https")
+
+const app = express();
+app.use(express.static("public"));
+app.use(bodyParser.urlencoded({
+  extende: true
+}));
+
+app.get("/", function(req, res) {
+  res.sendFile(__dirname + "/signup.html")
+});
+
+app.post("/", function(req, res) {
+  const firstName = req.body.fName;
+  const lastName = req.body.lName;
+  const email = req.body.email;
+
+  const data = {
+    members: [{
+      email_address: email,
+      status: "subscribed",
+      merge_field: {
+        FNAME: firstName,
+        LNAME: lastName
+      }
+    }]
+  };
+
+  const jsonData = JSON.stringify(data);
+
+  const url = "https://us17.api.mailchimp.com/3.0/lists/36dca30d63";
+  const options = {
+    method: "post",
+    auth: "aditya1:35d14eadbbdf85e34c1276d2465bb217-us17"
+  }
+
+  const request = https.request(url, options, function(response) {
+
+    if (response.statusCode === 200) {
+      res.sendFile(__dirname + "/success.html");
+    } else {
+      res.sendFile(__dirname + "/failure.html");
+    }
+
+
+    response.on("data", function(data) {
+      console.log(JSON.parse(data));
+    })
+  })
+
+  request.write(jsonData);
+  request.end();
+
+});
+
+
+app.post("/failure", function(req, res) {
+  res.redirect("/");
+})
+
+app.listen(6969, function() {
+  console.log("Server is running on port 6969");
+})
+
+
+
+                                                    success.html:
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Sucess</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">Awesome!</h1>
+        <p class="lead">You've been Sucessfully sign up to the NewsWithTea!</p>
+      </div>
+    </div>
+
+
+  </body>
+</html>
+
+
+                                                   failure.html:
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Failure</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  </head>
+  <body>
+
+    <div class="jumbotron jumbotron-fluid">
+      <div class="container">
+        <h1 class="display-4">Uh Oh!</h1>
+        <p class="lead">There was a problem singing you up. Plese try again!</p>
+        <form  action="/failure" method="post">
+          <button class="btn btn-lg btn-warning" type="submit" name="button">Try again</button>
+
+        </form>
+      </div>
+    </div>
+
+
+  </body>
+</html>
+
+
+                                                    index.html:
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="">
+  <meta name="author" content="">
+  <link rel="icon" href="/docs/4.0/assets/img/favicons/favicon.ico">
+
+
+  <title>NewsWithTea!</title>
+
+  <link rel="canonical" href="https://getbootstrap.com/docs/4.0/examples/sign-in/">
+
+  <!-- Bootstrap core CSS -->
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Custom styles for this template -->
+  <link href="css/styles.css" rel="stylesheet">
+</head>
+
+<body class="text-center">
+  <form action="/" class="form-signin"   method="post">
+    <img class="mb-4" src="images/tea.png" alt="" width="80" height="80">
+    <h2 class="h3 mb-3 font-weight-normal">NewsWithTea!</h2>
+
+    <input type="text" name="fName" class="form-control top" placeholder="First Name" required>
+    <input type="text" name="lName" class="form-control middle" placeholder="Last Name" required>
+    <input type="email"name="email" class="form-control bottom" placeholder="Email" required>
+
+    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign Up</button>
+    <p class="text-muted">&copy; THE INSIDER</p>
+  </form>
+</body>
+
+</html>
